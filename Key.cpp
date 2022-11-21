@@ -37,13 +37,19 @@ void Key::key_update(boolean isPressed)
         if (!isPressed) // or for a key to be RELEASED.
             transitionTo(RELEASED);
         else if ((millis() - holdTimer) > HoldTime) // Waiting for a key HOLD...
+        {
             transitionTo(HOLD);
+            holdTimer = millis();
+        }
         break;
     case HOLD:
         if (!isPressed)
             transitionTo(RELEASED);
         else if ((millis() - holdTimer) > HoldTime)
+        {
             transitionTo(HOLD);
+            holdTimer = millis();
+        }
         break;
     case RELEASED:
         transitionTo(IDLE);
