@@ -8,8 +8,14 @@ typedef enum
     WAIT,
     DOWN,
     UP,
-    CLICK
+    CLICK,
 } RotaryState;
+
+typedef enum
+{
+    SWOPEN,
+    SWCLOSE,
+} ClickState;
 
 class Rotary
 {
@@ -23,6 +29,7 @@ private:
     int ALastState;
 
     void setupPinMode();
+    ClickState clkState;
 };
 
 #endif

@@ -40,10 +40,15 @@ RotaryState Rotary::readRotaryEncoder()
     }
     ALastState = aState;
 
-    if (swState == LOW)
+    if (swState == LOW && clkState == SWOPEN)
     {
-        delay(500);
+        clkState = SWCLOSE;
         retVal = CLICK;
+    }
+    else if (swState == HIGH)
+    {
+        clkState = SWOPEN;
+        delay(1);
     }
 
     return retVal;
