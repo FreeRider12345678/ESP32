@@ -57,6 +57,9 @@ void RotaryMapping::Click()
         Ble.write(KEY_MEDIA_MUTE);
         break;
     case MOUSE: // Mouse Wheel
+        Ble.press(KEY_DELETE);
+        delay(100);
+        Ble.releaseAll();
                 // code für Maus-Rad
     default:
         break;

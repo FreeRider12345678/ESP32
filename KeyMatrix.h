@@ -14,8 +14,8 @@ public:
 private:
     byte *inputPins;
     byte *outputPins;
-    int rowCount;
-    int colCount;
+    int rowCount = 0;
+    int colCount = 0;
     Key **key;
 
     int holdTime;
