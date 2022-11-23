@@ -1,5 +1,5 @@
-#ifndef Rotarylib_ROTARYMAPPING_H
-#define Rotarylib_ROTARYMAPPING_H
+#ifndef Rotarylib_ROTARYACTION_H
+#define Rotarylib_ROTARYACTION_H
 
 #include <Arduino.h>
 #include <BleKeyboard.h>
@@ -12,10 +12,10 @@ typedef enum
     VOLUME,
 } RotaryType;
 
-class RotaryMapping
+class RotaryAction
 {
 public:
-    RotaryMapping(BleKeyboard &bleKeyboard);
+    RotaryAction(BleKeyboard &bleKeyboard);
     void SetType(RotaryType type);
     void Action(RotaryState state);
 

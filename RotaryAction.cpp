@@ -1,13 +1,13 @@
-#include <RotaryMapping.h>
-RotaryMapping::RotaryMapping(BleKeyboard &bleKeyboard) : Ble(bleKeyboard)
+#include <RotaryAction.h>
+RotaryAction::RotaryAction(BleKeyboard &bleKeyboard) : Ble(bleKeyboard)
 {
 }
-void RotaryMapping::SetType(RotaryType type)
+void RotaryAction::SetType(RotaryType type)
 {
     Type = type;
 }
 
-void RotaryMapping::Action(RotaryState state)
+void RotaryAction::Action(RotaryState state)
 {
     switch (state)
     {
@@ -23,7 +23,7 @@ void RotaryMapping::Action(RotaryState state)
     }
 }
 
-void RotaryMapping::MoveDown()
+void RotaryAction::MoveDown()
 {
     switch (Type)
     {
@@ -36,7 +36,7 @@ void RotaryMapping::MoveDown()
     }
 }
 
-void RotaryMapping::MoveUp()
+void RotaryAction::MoveUp()
 {
     switch (Type)
     {
@@ -49,7 +49,7 @@ void RotaryMapping::MoveUp()
     }
 }
 
-void RotaryMapping::Click()
+void RotaryAction::Click()
 {
     switch (Type)
     {
@@ -60,7 +60,7 @@ void RotaryMapping::Click()
         Ble.press(KEY_DELETE);
         delay(100);
         Ble.releaseAll();
-                // code für Maus-Rad
+        // code für Maus-Rad
     default:
         break;
     }
