@@ -15,6 +15,7 @@ Rotary RotaryLeft;
 Rotary RotaryRight;
 RotaryAction RotaryActionLeft = *new RotaryAction(bleKeyboard);
 RotaryAction RotaryActionRight = *new RotaryAction(bleKeyboard);
+RotaryAction *RotaryActions = { RotaryActionLeft, RotaryActionRight };
 int rotaryLeftPins[] = {12, 13, 14};  // Left Rotary Encoder
 int rotaryRightPins[] = {26, 27, 25}; // Right Rotary Encoder
 
@@ -26,6 +27,9 @@ byte rows[] = {5, 17, 16};
 const int colCount = sizeof(cols) / sizeof(cols[0]);
 const int rowCount = sizeof(rows) / sizeof(rows[0]);
 KeyMap KeyConfigs = *new KeyMap(bleKeyboard, rowCount, colCount);
+
+// ConfigWriter
+ConfigWriter Config = *new ConfigWriter(bleKeyboard, KeyConfigs, RotaryActions);
 
 void initRotary()
 {
@@ -59,8 +63,11 @@ void setup()
 
   key = Matrix.Begin(rows, rowCount, cols, colCount, 500, 0);
 
-  initRotary();
-  initKeyMap();
+  std::string config = "r.0.0:mouse;r.0.1:volume;k.0.0:ctrl+c,,ctrl+v;r.0.3:pageup;k.1.0:altgr+q;k.1.1:altgr+e;k.1.2:altgr+m;k.1.3:altgr+<;";
+  Config.SetConfig(config);
+
+  //initRotary();
+  //initKeyMap();
 }
 
 void loop()
