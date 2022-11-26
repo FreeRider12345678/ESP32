@@ -40,6 +40,25 @@ void KeyAction::SetConfig(uint8_t *pressConfig, int pressCount, uint8_t *holdCon
     SetReleaseConfig(releaseConfig, releaseCount);
 }
 
+void KeyAction::ClearConfig()
+{
+    if (PressCount > 0)
+    {
+        delete[] PressConfig;
+    }
+    if (HoldCount > 0)
+    {
+        delete[] HoldConfig;
+    }
+    if (ReleaseCount > 0)
+    {
+        delete[] ReleaseConfig;
+    }
+    PressCount = 0;
+    HoldCount = 0;
+    ReleaseCount = 0;
+}
+
 void KeyAction::Action(KeyState state)
 {
     switch (state)

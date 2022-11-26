@@ -2,9 +2,19 @@
 RotaryAction::RotaryAction(BleKeyboard &bleKeyboard) : Ble(bleKeyboard)
 {
 }
+void RotaryAction::Clear()
+{
+    Type = NOTYPE;
+}
+
 void RotaryAction::SetType(RotaryType type)
 {
     Type = type;
+}
+
+RotaryType RotaryAction::GetType()
+{
+    return Type;
 }
 
 void RotaryAction::Action(RotaryState state)

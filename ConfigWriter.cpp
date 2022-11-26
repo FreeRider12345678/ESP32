@@ -2,13 +2,11 @@
 #include <vector>
 #include <ConfigWriter.h>
 
-ConfigWriter::ConfigWriter(BleKeyboard& bleKeyboard, KeyMap& keyMap, RotaryAction* rotaryActions) : Ble(bleKeyboard)
+ConfigWriter::ConfigWriter()
 {
-	KeyMap = keyMap;
-	RotaryActions = rotaryActions;
 }
 
-void ConfigWriter::Tokenize(std::string const& str, const char delim, std::vector<std::string>& out)
+void ConfigWriter::Tokenize(std::string const &str, const char delim, std::vector<std::string> &out)
 {
 	size_t start;
 	size_t end = 0;
@@ -20,19 +18,37 @@ void ConfigWriter::Tokenize(std::string const& str, const char delim, std::vecto
 	}
 }
 
-void ConfigWriter::SetConfig(std::string configString)
+void ConfigWriter::ClearConfigs(KeyMap &keyMap, std::vector<RotaryAction> &rotaryActions)
 {
-	// configs have following syntax:
-	// <typeid>.<row>.<col>:<config>;
-	// <typeid> := r | k
-	// <row> := 1-digit-number
-	// <col> := 1-digit-number
-	// <config> := <rotaryconfig> | <keyconfig>
-	// <rotaryconfig> := mouse | volume
-	// <keyconfig> := <pressconfig>,<holdconfig>,<releaseconfig>
-	// <pressconfig> := <key>[+<key>]*
-	// <holdconfig> := <key>[+<key>]*
-	// <releaseconfig> := <key>[+<key>]*
+	for (size_t r = 0; r < keyMap.RowCount; r++)
+	{
+		for (size_t c = 0; c < keyMap.ColCount; c++)
+		{
+			keyMap.GetAction(r, c).ClearConfig();
+		}
+	}
+
+	for (auto &rotary : rotaryActions)
+	{
+		rotary.Clear();
+	}
+}
+
+// configs have following syntax:
+// <typeid>.<row>.<col>:<config>;
+// <typeid> := r | k
+// <row> := 1-digit-number
+// <col> := 1-digit-number
+// <config> := <rotaryconfig> | <keyconfig>
+// <rotaryconfig> := mouse | volume
+// <keyconfig> := <pressconfig>,<holdconfig>,<releaseconfig>
+// <pressconfig> := <key>[+<key>]*
+// <holdconfig> := <key>[+<key>]*
+// <releaseconfig> := <key>[+<key>]*
+void ConfigWriter::SetConfig(std::string configString, KeyMap &keyMap, std::vector<RotaryAction> &rotaryActions)
+{
+	// clear all configs
+	ClearConfigs(keyMap, rotaryActions);
 
 	// split configs
 	const char delim = ';';
@@ -40,63 +56,72 @@ void ConfigWriter::SetConfig(std::string configString)
 	Tokenize(configString, delim, out);
 
 	// loop through configs
-	for (auto& config : out)
+	for (auto &config : out)
 	{
-		SetConfig(config);
+		SetConfigElement(config, keyMap, rotaryActions);
 	}
 }
 
-void ConfigWriter::SetConfigElement(std::string configElement)
+void ConfigWriter::SetConfigElement(std::string configElement, KeyMap &keyMap, std::vector<RotaryAction> &rotaryActions)
 {
 	// get name, row, col
-	char type = configElement[0];	// first character holds type
-	int row = a - configElement[2]; // 3rd character holds row number
-	int col = a - configElement[4]; // 5th character holds col number
+	char type = configElement[0];	 // first character holds type
+	int row = configElement[2] - 48; // 3rd character holds row number
+	int col = configElement[4] - 48; // 5th character holds col number
 
 	// get element
-	str config = configElement.substr(6, str.length() - 8);
+	std::string config = configElement.substr(6, configElement.length() - 6);
 
 	// config rotary or key
 	if (type == 'r')
 	{
 		// rotary
-		RotaryAction rotary = RotaryActions[col];
 		RotaryType rotaryType = GetRotaryType(config);
-		rotary.SetType(rotaryType);
+		// RotaryAction &rotary = rotaryActions[col];
+		// rotary.SetType(rotaryType);
+		rotaryActions[col].SetType(rotaryType);
 	}
 	else if (type == 'k')
 	{
 		// key
-		KeyAction key = KeyMap.GetAction(row, col);
+		KeyAction &key = keyMap.GetAction(row, col);
 
 		// split arrays
 		const char delim = ',';
 		std::vector<std::string> out;
-		Tokenize(configString, delim, out);
+		Tokenize(config, delim, out);
 
 		// get configs
 		int count;
-		uint8_t* press = GetKeyConfig(out[0], count);
-		key.SetPressConfig(press, count);
+		if (out[0] != "-")
+		{
+			uint8_t *press = GetKeyConfig(out[0], count);
+			key.SetPressConfig(press, count);
+		}
 
-		uint8_t* hold = GetKeyConfig(out[1], count);
-		key.SetHoldConfig(hold, count);
-
-		uint8_t* release = GetKeyConfig(out[2], count);
-		key.SetReleaseConfig(release, count);
+		if (out[1] != "-")
+		{
+			uint8_t *hold = GetKeyConfig(out[1], count);
+			key.SetHoldConfig(hold, count);
+		}
+		if (out[2] != "-")
+		{
+			uint8_t *release = GetKeyConfig(out[2], count);
+			key.SetReleaseConfig(release, count);
+		}
 	}
 }
 
-uint8_t* ConfigWriter::GetKeyConfig(std::string configElement, int& count)
+uint8_t *ConfigWriter::GetKeyConfig(std::string configElement, int &count)
 {
 	// split keys
 	const char delim = '+';
 	std::vector<std::string> keys;
-	Tokenize(configString, delim, keys);
+	Tokenize(configElement, delim, keys);
 
 	// Get key codes
 	count = keys.size();
-	uint8_t* arr = (uint8_t*)malloc(sizeof(uint8_t) * keys.size());
+	uint8_t *arr = (uint8_t *)malloc(sizeof(uint8_t) * count);
 	for (size_t i = 0; i < count; i++)
 	{
 		arr[i] = GetKeyCode(keys[i]);
@@ -107,109 +132,117 @@ uint8_t* ConfigWriter::GetKeyConfig(std::string configElement, int& count)
 
 RotaryType ConfigWriter::GetRotaryType(std::string config)
 {
-	switch (config)
-	{
-	case "mouse":
+	if (config == "mouse")
 		return MOUSE;
-	case "volume":
+	if (config == "volume")
 		return VOLUME;
-	default:
-		return NOTYPE;
-	}
+	return NOTYPE;
 }
 
 uint8_t ConfigWriter::GetKeyCode(std::string key)
 {
-	switch (key)
-	{
-	case "ctrl":
+	// special keys
+	if (key == "ctrl")
 		return KEY_LEFT_CTRL;
-	case "shift":
+	if (key == "shift")
 		return KEY_LEFT_SHIFT;
-	case "alt":
+	if (key == "alt")
 		return KEY_LEFT_ALT;
-	case "altgr":
+	if (key == "altgr")
 		return KEY_RIGHT_ALT;
-	case "up":
+	if (key == "up")
 		return KEY_UP_ARROW;
-	case "down":
+	if (key == "down")
 		return KEY_DOWN_ARROW;
-	case "left":
+	if (key == "left")
 		return KEY_LEFT_ARROW;
-	case "right":
+	if (key == "right")
 		return KEY_RIGHT_ARROW;
-	case "back":
+	if (key == "back")
 		return KEY_BACKSPACE;
-	case "tab":
+	if (key == "tab")
 		return KEY_TAB;
-	case "cr":
+	if (key == "cr")
 		return KEY_RETURN;
-	case "esc":
+	if (key == "esc")
 		return KEY_ESC;
-	case "ins":
+	if (key == "ins")
 		return KEY_INSERT;
-	case "del":
+	if (key == "del")
 		return KEY_DELETE;
-	case "pageup":
+	if (key == "pageup")
 		return KEY_PAGE_UP;
-	case "pagedown":
+	if (key == "pagedown")
 		return KEY_PAGE_DOWN;
-	case "home":
+	if (key == "home")
 		return KEY_HOME;
-	case "end":
+	if (key == "end")
 		return KEY_END;
-	case "caps":
+	if (key == "caps")
 		return KEY_CAPS_LOCK;
-	case "win":
+	if (key == "win")
 		return KEY_LEFT_GUI;
-	case "f1":
+	if (key == "f1")
 		return KEY_F1;
-	case "f2":
+	if (key == "f2")
 		return KEY_F2;
-	case "f3":
+	if (key == "f3")
 		return KEY_F3;
-	case "f4":
+	if (key == "f4")
 		return KEY_F4;
-	case "f5":
+	if (key == "f5")
 		return KEY_F5;
-	case "f6":
+	if (key == "f6")
 		return KEY_F6;
-	case "f7":
+	if (key == "f7")
 		return KEY_F7;
-	case "f8":
+	if (key == "f8")
 		return KEY_F8;
-	case "f9":
+	if (key == "f9")
 		return KEY_F9;
-	case "f10":
+	if (key == "f10")
 		return KEY_F10;
-	case "f11":
+	if (key == "f11")
 		return KEY_F11;
-	case "f12":
+	if (key == "f12")
 		return KEY_F12;
-	case "f13":
+	if (key == "f13")
 		return KEY_F13;
-	case "f14":
+	if (key == "f14")
 		return KEY_F14;
-	case "f15":
+	if (key == "f15")
 		return KEY_F15;
-	case "f16":
+	if (key == "f16")
 		return KEY_F16;
-	case "f17":
+	if (key == "f17")
 		return KEY_F17;
-	case "f18":
+	if (key == "f18")
 		return KEY_F18;
-	case "f19":
+	if (key == "f19")
 		return KEY_F19;
-	case "f20":
+	if (key == "f20")
 		return KEY_F20;
-	case "f21":
+	if (key == "f21")
 		return KEY_F21;
-	case "f22":
+	if (key == "f22")
 		return KEY_F22;
-	case "f23":
+	if (key == "f23")
 		return KEY_F23;
-	case "f24":
+	if (key == "f24")
 		return KEY_F24;
-	}
-	return 0;
+
+	// delimiter characters
+	if (key == "plus")
+		return '+';
+	if (key == "minus")
+		return '-';
+	if (key == "dot")
+		return ',';
+	if (key == "semicolon")
+		return ';';
+	if (key == "colon")
+		return ':';
+
+	// regular keys: 1-digit
+	return key[0];
 }

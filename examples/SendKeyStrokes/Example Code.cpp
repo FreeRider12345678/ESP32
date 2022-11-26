@@ -6,6 +6,7 @@
 #include <KeyMap.h>
 #include <Rotary.h>
 #include <RotaryAction.h>
+#include <ConfigWriter.h>
 
 // Bluetooth Low Energy
 BleKeyboard bleKeyboard;
@@ -15,7 +16,7 @@ Rotary RotaryLeft;
 Rotary RotaryRight;
 RotaryAction RotaryActionLeft = *new RotaryAction(bleKeyboard);
 RotaryAction RotaryActionRight = *new RotaryAction(bleKeyboard);
-RotaryAction *RotaryActions = { RotaryActionLeft, RotaryActionRight };
+RotaryAction RotaryActions[] = { RotaryActionLeft, RotaryActionRight };
 int rotaryLeftPins[] = {12, 13, 14};  // Left Rotary Encoder
 int rotaryRightPins[] = {26, 27, 25}; // Right Rotary Encoder
 

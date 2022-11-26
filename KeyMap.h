@@ -13,11 +13,11 @@ public:
     void Action(Key **keys);
     KeyAction &GetAction(int row, int col);
 
-private:
-    BleKeyboard &Ble;
-
     int RowCount = 0;
     int ColCount = 0;
+
+private:
+    BleKeyboard &Ble;
     KeyAction **KeyMappings;
 };
 

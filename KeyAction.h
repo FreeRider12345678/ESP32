@@ -13,6 +13,9 @@ public:
     void SetHoldConfig(uint8_t *holdConfig, int holdCount);
     void SetReleaseConfig(uint8_t *releaseConfig, int releaseCount);
     void SetConfig(uint8_t *pressConfig, int pressCount, uint8_t *holdConfig, int holdCount, uint8_t *releaseConfig, int releaseCount);
+
+    void ClearConfig();
+
     void Action(KeyState state);
 
 private:

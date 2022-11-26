@@ -16,7 +16,9 @@ class RotaryAction
 {
 public:
     RotaryAction(BleKeyboard &bleKeyboard);
+    RotaryType GetType();
     void SetType(RotaryType type);
+    void Clear();
     void Action(RotaryState state);
 
 private:
